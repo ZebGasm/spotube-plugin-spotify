@@ -1,50 +1,33 @@
-import "module:std" as std
-import "module:spotube_plugin" as spotube
-import { SpotifyGqlApi } from '../dependencies/hetu_spotify_gql_client/lib/assets/hetu/spotify_gql_api_client.ht'
+class DeezerMetadataProvider {
+  search(query) {
+    const url = "https://api.deezer.com/search?q=" + query;
+    const res = httpGet(url);
+    return this._formatTracks(res.data);
+  }
 
-import { SpotifyAuthEndpoint } from './segments/auth.ht'
-import { AlbumEndpoint } from "./segments/album.ht"
-import { ArtistEndpoint } from "./segments/artist.ht"
-import { BrowseEndpoint } from "./segments/browse.ht"
-import { PlaylistEndpoint } from './segments/playlist.ht'
-import { SearchEndpoint } from './segments/search.ht'
-import { TrackEndpoint } from './segments/track.ht'
-import { UserEndpoint } from './segments/user.ht'
-import { CorePlugin } from './segments/core.ht'
+  getTrack(id) {
+    const url = "https://api.deezer.com/track/" + id;
+    const res = httpGet(url);
+    return this._formatTrack(res.data);
+  }
 
-var Stream = std.Stream
-var HttpClient = std.HttpClient
+  getArtist(id) { ... }
+  getAlbum(id) { ... }
+  getPlaylist(id) { ... }
 
-class SpotifyMetadataProviderPlugin {
-  var auth: SpotifyAuthEndpoint
-  var api: SpotifyGqlApi
+  _formatTracks(data) {
+    // Convert Deezer results into Spotube metadata model
+  }
 
-  var album: AlbumEndpoint
-  var artist: ArtistEndpoint
-  var browse: BrowseEndpoint
-  var playlist: PlaylistEndpoint
-  var search: SearchEndpoint
-  var track: TrackEndpoint
-  var user: UserEndpoint
-  var core: CorePlugin
-  
-  construct (){
-    api = SpotifyGqlApi()
-    auth = SpotifyAuthEndpoint()
-
-    album = AlbumEndpoint(api)
-    artist = ArtistEndpoint(api)
-    browse = BrowseEndpoint(api, auth)
-    playlist = PlaylistEndpoint(api)
-    search = SearchEndpoint(api)
-    track = TrackEndpoint(api)
-    user = UserEndpoint(api)
-    core = CorePlugin()
-
-    auth.authStateStream.listen((event) {
-      api.setAccessToken(auth.credentials["accessToken"])
-    })
+  _formatTrack(d) {
+    return {
+      id: d["id"].toString(),
+      title: d["title"],
+      artist: d["artist"]["name"],
+      album: d["album"]["title"],
+      duration: d["duration"],
+      image: d["album"]["cover_medium"],
+      // etc...
+    };
   }
 }
-
-export { SpotifyMetadataProviderPlugin }
